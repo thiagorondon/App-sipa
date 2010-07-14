@@ -8,6 +8,7 @@ package Sipa;
 
 use Moose;
 use Net::Pcap::Easy;
+use Data::Dumper;
 
 has 'opt' => (is => 'rw', isa => 'Object');
 has 'fh' => (is => 'rw', isa => 'Object');
@@ -50,17 +51,16 @@ sub get {
                 my @data = split(/\n/, $spo->{data});
                 $self->_print ("     -> " . $data[0] . "\n");
 
-#                if ($self->opt->verbose) {
-#                use Data::Dumper;
-#                $self->_print "npe " . "-" x 30 . "\n";
-#                $self->_print Dumper($npe);
-#                $self->_print "ether " . "-" x 30 . "\n";
-#                $self->_print Dumper($ether);
-#                $self->_print "ip " . "-" x 30 . "\n";
-#                $self->_print Dumper($ip);
-#                $self->_print "spo " . "-" x 30 . "\n";
-#                $self->_print Dumper($spo);
-#            }
+                if ($self->opt->verbose) {
+                    $self->_print ("npe " . "-" x 30 . "\n");
+                    $self->_print (Dumper($npe));
+                    $self->_print ("ether " . "-" x 30 . "\n");
+                    $self->_print (Dumper($ether));
+                    $self->_print ("ip " . "-" x 30 . "\n");
+                    $self->_print (Dumper($ip));
+                    $self->_print ("spo " . "-" x 30 . "\n");
+                    $self->_print (Dumper($spo));
+                }
         },
     );
 
