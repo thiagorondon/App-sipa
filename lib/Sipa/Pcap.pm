@@ -2,7 +2,7 @@
 package Sipa::Pcap;
 
 use Moose;
-use namespace::autoclean;
+with 'MooseX::Traits';
 
 use Net::Pcap::Easy;
 use Data::Dumper;
@@ -18,6 +18,7 @@ sub _prepare {
         open my $fh, '>>', $self->opt->out or die $!;
         $self->fh($fh);
     }
+
 }
 
 sub _print {
@@ -47,6 +48,13 @@ sub _check_txts {
     return 1;
 }
 
+sub _get_method {
+    my $self = shift;
+    my $message = shift;
+    return 'INVITE' if $message =~ 'INVITE';
+    return '';
+}
+
 sub get {
     my $self = shift;
     $self->_prepare;
@@ -69,10 +77,17 @@ sub get {
                 
                 
                 my @data = split(/\n/, $spo->{data});
-                $self->_print (' : ' . $data[0] . "\n");
+                my $first_line = $data[0];
+                $self->_print (' : ' . $first_line . "\n");
 
                 if ($self->opt->codecs) {
                     $self->_show_codecs;
+                }
+
+                my $method = $self->_get_method ($first_line);
+
+                if ($self->does('Sipa::Role::Stats')) {
+                    $self->inc_calls() if $method eq 'INVITE';
                 }
 
                 if ($self->opt->verbose) {
@@ -91,8 +106,5 @@ sub get {
     1 while $npe->loop;
 }
 
-__PACKAGE__->meta->make_immutable;
-
 1;
-
 

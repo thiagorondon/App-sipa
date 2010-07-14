@@ -56,6 +56,9 @@ Show the codecs in output.
 
 String for match in the packets.
 
+=head3 --stats
+
+Default: False
 
 =head1 AUTHOR
 
@@ -69,19 +72,39 @@ it under the same terms as Perl itself.
 =cut
 
 use Moose;
+with 'MooseX::Traits';
+
 use FindBin qw($Bin);
 use lib "$Bin/lib";
 
 use Sipa::Getopt;
 use Sipa::Pcap;
 
+our $sipa;
+
 sub _main {
     my $app = Sipa::Getopt->new_with_options();
-    my $sipa = Sipa::Pcap->new;
+
+    if (!$app->stats) {
+        $sipa = Sipa::Pcap->new;
+    } else {
+        $sipa = Sipa::Pcap->with_traits('Sipa::Role::Stats')->new;
+    }
+
     $sipa->opt($app);
     $sipa->get();
 
 }
+
+sub _sigint {
+    return 1 if !$sipa->does('Sipa::Role::Stats');
+    print "\n";
+    print "calls completed: " . $sipa->calls . "\n";
+    print "\n";
+    return 1;
+}
+
+$SIG{INT} = \&_sigint;
 
 _main;
 
