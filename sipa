@@ -11,7 +11,7 @@ use Net::Pcap::Easy;
 use Data::Dumper;
 
 has 'opt' => (is => 'rw', isa => 'Object');
-has 'fh' => (is => 'rw', isa => 'Object');
+has 'fh' => (is => 'rw', isa => 'FileHandle');
 
 sub _prepare {
     my $self = shift;
