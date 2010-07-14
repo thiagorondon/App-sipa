@@ -1,0 +1,90 @@
+#!/usr/bin/env perl
+#
+# Aware TI, 2010, http://www.aware.com.br
+# Thiago Rondon <thiago@aware.com.br>
+#
+
+package Sipa;
+
+use Moose;
+use Net::Pcap::Easy;
+
+has 'opt' => (is => 'rw', isa => 'Object');
+has 'fh' => (is => 'rw', isa => 'Object');
+
+sub _prepare {
+    my $self = shift;
+    if ($self->opt->out) {
+        open my $fh, '>>', $self->opt->out or die $!;
+        $self->fh($fh);
+    }
+}
+
+sub _print {
+    my $self = shift;
+    my @out = @_;
+    if ($self->opt->out) {
+        print $self->fh (@out);
+    } else {
+        print (@out);
+    }
+}
+
+sub get {
+    my $self = shift;
+    $self->_prepare;
+
+    my $npe = Net::Pcap::Easy->new(
+        dev     =>  $self->opt->dev,
+        filter  =>  $self->opt->filter,
+        packet_per_loop => 10,
+        bytes_to_capture => 1024,
+        timeout_in_ms => 0,
+        promiscous => $self->opt->promiscous,
+
+        udp_callback => sub {
+            my ($npe, $ether, $ip, $spo) = @_;
+                $self->_print ("UDP: $ip->{src_ip}:$spo->{src_port} -> ");
+                $self->_print ("$ip->{dest_ip}:$spo->{dest_port}\n");
+        
+                my @data = split(/\n/, $spo->{data});
+                $self->_print ("     -> " . $data[0] . "\n");
+
+#                if ($self->opt->verbose) {
+#                use Data::Dumper;
+#                $self->_print "npe " . "-" x 30 . "\n";
+#                $self->_print Dumper($npe);
+#                $self->_print "ether " . "-" x 30 . "\n";
+#                $self->_print Dumper($ether);
+#                $self->_print "ip " . "-" x 30 . "\n";
+#                $self->_print Dumper($ip);
+#                $self->_print "spo " . "-" x 30 . "\n";
+#                $self->_print Dumper($spo);
+#            }
+        },
+    );
+
+    1 while $npe->loop;
+}
+
+1;
+
+####
+
+package main;
+
+use Moose;
+use FindBin qw($Bin);
+use lib "$Bin/lib";
+use Sipa::Getopt;
+
+sub _main {
+    my $app = Sipa::Getopt->new_with_options();
+    my $sipa = Sipa->new;
+    $sipa->opt($app);
+    $sipa->get();
+}
+
+_main;
+
+
