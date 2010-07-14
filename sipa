@@ -4,6 +4,71 @@
 # Thiago Rondon <thiago@aware.com.br>
 #
 
+
+=head1 NAME
+
+Sipa - Yet Another Pcap Sniffer for SIP
+
+=head2 INSTALL
+
+To make the instructions a little easier, this assume that you have
+Net::Pcap:Easy and MooseX::Getopt modules installed, but if you dont have,
+dont worry, install with cpan application.
+
+    cpan Net::Pcap::Easy
+    cpan MooseX::Getopt
+
+Than, just do that:
+
+    perl Makefile.PL
+    make
+    make install
+
+Your sipa is in your /usr/bin now.
+
+=head2 OPTIONS
+
+=head3 --port [Int]
+
+Default value: 5060
+
+=head3 --dev [Str]
+
+Default value: eth0
+
+=head3 --promiscous
+
+Default value: True
+
+=head3 --verbose
+
+Show all the packet.
+
+=head3 --out [filepath]
+
+Put output in [filepath].
+
+=head3 --codecs
+
+Show the codecs in output.
+
+=head3 --txt [string]
+
+String for match in the packets.
+
+
+=head1 AUTHOR
+
+Thiago Rondon <thiago.rondon@gmail.com>
+
+=head1 LICENSE
+
+This library is free software. You can redistribute it and/or modify
+it under the same terms as Perl itself.
+
+=cut
+
+
 package Sipa;
 
 use Moose;
@@ -42,6 +107,13 @@ sub _show_codecs {
     }
 }
 
+sub _check_txts {
+    my $self = shift;
+    if ($self->opt->txt) {
+        return 0 if $self->opt->txt !~ $self->spo;
+    }   
+    return 1;
+}
 
 sub get {
     my $self = shift;
@@ -57,11 +129,13 @@ sub get {
 
         udp_callback => sub {
             my ($npe, $ether, $ip, $spo) = @_;
+                $self->spo($spo->{data});
+                return if !$self->_check_txts;
+ 
                 $self->_print ("SIP:$ip->{src_ip}:$spo->{src_port} -> ");
                 $self->_print ("$ip->{dest_ip}:$spo->{dest_port}");
                 
-                $self->spo($spo->{data});
-
+                
                 my @data = split(/\n/, $spo->{data});
                 $self->_print (' : ' . $data[0] . "\n");
 

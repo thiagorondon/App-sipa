@@ -1,0 +1,48 @@
+NAME
+    Sipa - Yet Another Pcap Sniffer for SIP
+
+  INSTALL
+    To make the instructions a little easier, this assume that you have
+    Net::Pcap:Easy and MooseX::Getopt modules installed, but if you dont
+    have, dont worry, install with cpan application.
+
+        cpan Net::Pcap::Easy
+        cpan MooseX::Getopt
+
+    Than, just do that:
+
+        perl Makefile.PL
+        make
+        make install
+
+    Your sipa is in your /usr/bin now.
+
+  OPTIONS
+   --port [Int]
+    Default value: 5060
+
+   --dev [Str]
+    Default value: eth0
+
+   --promiscous
+    Default value: True
+
+   --verbose
+    Show all the packet.
+
+   --out [filepath]
+    Put output in [filepath].
+
+   --codecs
+    Show the codecs in output.
+
+   --txt [string]
+    String for match in the packets.
+
+AUTHOR
+    Thiago Rondon <thiago.rondon@gmail.com>
+
+LICENSE
+    This library is free software. You can redistribute it and/or modify it
+    under the same terms as Perl itself.
+

@@ -11,6 +11,7 @@ has 'promiscous' => (is => 'rw', isa => 'Bool', default => 1);
 has 'verbose' => (is => 'rw', isa => 'Bool');
 has 'out' => (is => 'rw', isa => 'Str');
 has 'codecs' => (is => 'rw', isa => 'Bool');
+has 'txt' => (is => 'rw', isa => 'Str');
 
 has 'filter' => (is => 'ro', isa => 'Str', lazy => 1,
     default =>
