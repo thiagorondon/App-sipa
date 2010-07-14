@@ -11,6 +11,7 @@ build_requires 'Test::More';
 
 requires 'Net::Pcap::Easy';
 requires 'MooseX::Getopt';
+requires 'namespace::autoclean';
 
 WriteAll;
 

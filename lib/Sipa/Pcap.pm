@@ -2,6 +2,8 @@
 package Sipa::Pcap;
 
 use Moose;
+use namespace::autoclean;
+
 use Net::Pcap::Easy;
 use Data::Dumper;
 
@@ -88,6 +90,8 @@ sub get {
 
     1 while $npe->loop;
 }
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 

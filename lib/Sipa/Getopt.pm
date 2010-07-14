@@ -3,6 +3,8 @@
 package Sipa::Getopt;
 
 use Moose;
+use namespace::autoclean;
+
 with 'MooseX::Getopt';
 
 has 'port' => (is => 'rw', isa => 'Int', default => 5060);
@@ -20,6 +22,8 @@ has 'filter' => (is => 'ro', isa => 'Str', lazy => 1,
             join(' ', 'port', $self->port);
         }
     );
+
+__PACKAGE__->meta->make_immutable;
 
 1;
 
