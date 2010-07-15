@@ -15,7 +15,7 @@ sub _prepare {
     my $self = shift;
    
     if ($self->opt->out) {
-        open my $fh, '>>', $self->opt->out or die $!;
+        open my $fh, '>', $self->opt->out or die $!;
         $self->fh($fh);
     }
 
@@ -42,15 +42,20 @@ sub _show_codecs {
 
 sub _check_txts {
     my $self = shift;
-    if ($self->opt->txt) {
-        return 0 if $self->opt->txt !~ $self->spo;
-    }   
+    return 0 if $self->opt->txt and $self->opt->txt !~ $self->spo;
+    return 1;
+}
+
+sub _check_hosts {
+    my ($self, $src_host, $dest_host) = @_;
+    return 0 if $self->opt->host and 
+        $src_host ne $self->opt->host and
+            $dest_host ne $self->opt->host;
     return 1;
 }
 
 sub _get_method {
-    my $self = shift;
-    my $message = shift;
+    my ($self, $message) = @_;
     return 'INVITE' if $message =~ 'INVITE';
     return '';
 }
@@ -71,18 +76,15 @@ sub get {
             my ($npe, $ether, $ip, $spo) = @_;
                 $self->spo($spo->{data});
                 return if !$self->_check_txts;
- 
+                return if !$self->_check_hosts($ip->{src_ip}, $ip->{dest_ip});
+
                 $self->_print ("SIP:$ip->{src_ip}:$spo->{src_port} -> ");
                 $self->_print ("$ip->{dest_ip}:$spo->{dest_port}");
                 
-                
-                my @data = split(/\n/, $spo->{data});
-                my $first_line = $data[0];
+                my ($first_line) = split(/\n/, $spo->{data});
                 $self->_print (' : ' . $first_line . "\n");
 
-                if ($self->opt->codecs) {
-                    $self->_show_codecs;
-                }
+                $self->_show_codecs if $self->opt->codecs;
 
                 my $method = $self->_get_method ($first_line);
 

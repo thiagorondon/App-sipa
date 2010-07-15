@@ -9,6 +9,7 @@ license 'perl';
 
 build_requires 'Test::More';
 
+requires 'MooseX::Types::NetAddr::IP';
 requires 'Net::Pcap::Easy';
 requires 'MooseX::Getopt';
 requires 'MooseX::Traits';

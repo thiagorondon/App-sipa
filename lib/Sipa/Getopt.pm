@@ -3,6 +3,7 @@
 package Sipa::Getopt;
 
 use Moose;
+use MooseX::Types::NetAddr::IP qw( NetAddrIPv4 );
 use namespace::autoclean;
 
 with 'MooseX::Getopt';
@@ -20,6 +21,8 @@ foreach my $item (qw/verbose codecs stats/) {
 # Without default options
 has 'out' => (is => 'rw', isa => 'Str');
 has 'txt' => (is => 'rw', isa => 'Str');
+# fixme: NetAdddrIPv4
+has 'host' => (is => 'rw', isa => 'Str');
 
 # Read-only and lazy.
 has 'filter' => (is => 'ro', isa => 'Str', lazy => 1,
