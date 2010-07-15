@@ -10,15 +10,14 @@ use Data::Dumper;
 has 'opt' => (is => 'rw', isa => 'Object');
 has 'fh' => (is => 'rw', isa => 'FileHandle');
 has 'spo' => (is => 'rw', isa => 'Str');
+has 'first_line' => (is => 'rw', isa => 'Str');
 
 sub _prepare {
     my $self = shift;
-   
     if ($self->opt->out) {
         open my $fh, '>', $self->opt->out or die $!;
         $self->fh($fh);
     }
-
 }
 
 sub _print {
@@ -42,7 +41,7 @@ sub _show_codecs {
 
 sub _check_txts {
     my $self = shift;
-    return 0 if $self->opt->txt and $self->opt->txt !~ $self->spo;
+    return 0 if $self->opt->txt and $self->spo !~ $self->opt->txt;
     return 1;
 }
 
@@ -60,6 +59,45 @@ sub _get_method {
     return '';
 }
 
+sub _verbose {
+    my ($self, @info) = @_;
+    for my $item (@info) {
+        $self->_print (Dumper($item));
+    }
+}
+
+sub _show () {
+    my ($self, $ip, $spo) = @_;
+    my ($first_line) = split(/\n/, $spo->{data});
+    $self->first_line($first_line);
+    my $out = join(':', 'SIP', $ip->{src_ip}, $spo->{src_port} . ' -> ',
+        $ip->{dest_ip}, $spo->{dest_port}, $first_line . "\n");
+    
+    $self->_print($out);
+}
+
+sub _udp_callback {
+    my ($self, $npe, $ether, $ip, $spo) = @_;
+    $self->spo($spo->{data});
+    
+    # validates
+    return if !$self->_check_txts;
+    return if !$self->_check_hosts($ip->{src_ip}, $ip->{dest_ip});
+    
+    # Info for show
+    $self->_show($ip, $spo);
+    $self->_show_codecs if $self->opt->codecs;
+
+    # introspect and stats.
+    my $method = $self->_get_method ($self->first_line);
+    $self->inc_calls() if $self->does('Sipa::Role::Stats') 
+        and $method eq 'INVITE';
+
+    # more ...
+    $self->_verbose ($npe, $ether, $ip, $spo) 
+        if $self->opt->verbose;
+};
+
 sub get {
     my $self = shift;
     $self->_prepare;
@@ -71,38 +109,7 @@ sub get {
         bytes_to_capture => 1024,
         timeout_in_ms => 0,
         promiscous => $self->opt->promiscous,
-
-        udp_callback => sub {
-            my ($npe, $ether, $ip, $spo) = @_;
-                $self->spo($spo->{data});
-                return if !$self->_check_txts;
-                return if !$self->_check_hosts($ip->{src_ip}, $ip->{dest_ip});
-
-                $self->_print ("SIP:$ip->{src_ip}:$spo->{src_port} -> ");
-                $self->_print ("$ip->{dest_ip}:$spo->{dest_port}");
-                
-                my ($first_line) = split(/\n/, $spo->{data});
-                $self->_print (' : ' . $first_line . "\n");
-
-                $self->_show_codecs if $self->opt->codecs;
-
-                my $method = $self->_get_method ($first_line);
-
-                if ($self->does('Sipa::Role::Stats')) {
-                    $self->inc_calls() if $method eq 'INVITE';
-                }
-
-                if ($self->opt->verbose) {
-                    $self->_print ("npe " . "-" x 30 . "\n");
-                    $self->_print (Dumper($npe));
-                    $self->_print ("ether " . "-" x 30 . "\n");
-                    $self->_print (Dumper($ether));
-                    $self->_print ("ip " . "-" x 30 . "\n");
-                    $self->_print (Dumper($ip));
-                    $self->_print ("spo " . "-" x 30 . "\n");
-                    $self->_print (Dumper($spo));
-                }
-        },
+        udp_callback => sub { $self->_udp_callback(@_) } ,
     );
 
     1 while $npe->loop;
