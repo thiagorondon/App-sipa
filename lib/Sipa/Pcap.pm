@@ -13,6 +13,7 @@ has 'spo' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
 has 'spo_first_line' => (is => 'rw', isa => 'Str');
 has 'spo_body' => (is => 'rw', isa => 'Str');
 has 'spo_method' =>  (is => 'rw', isa => 'Str', default => '');
+has 'spo' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
 
 has 'spo_header' => (
     traits => ['Array'],
