@@ -77,22 +77,17 @@ use FindBin qw($Bin);
 use lib "$Bin/lib";
 
 use Sipa::Getopt;
-use Sipa::Pcap;
+use Sipa::Runtime;
 
 our $sipa;
 
 sub _main {
     my $app = Sipa::Getopt->new_with_options();
-
-    if (!$app->stats) {
-        $sipa = Sipa::Pcap->new;
-    } else {
-        $sipa = Sipa::Pcap->with_traits('Sipa::Role::Stats')->new;
-    }
-
+    my @traits = ('Sipa::Role::Pcap');
+    push(@traits, 'Sipa::Role::Stats') if $app->stats;
+    $sipa = Sipa::Runtime->with_traits(@traits)->new;
     $sipa->opt($app);
     $sipa->get();
-
 }
 
 sub _sigint {
