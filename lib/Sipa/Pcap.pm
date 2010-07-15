@@ -9,14 +9,47 @@ use Data::Dumper;
 
 has 'opt' => (is => 'rw', isa => 'Object');
 has 'fh' => (is => 'rw', isa => 'FileHandle');
-has 'spo' => (is => 'rw', isa => 'Str');
-has 'first_line' => (is => 'rw', isa => 'Str');
+has 'spo' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
+has 'spo_first_line' => (is => 'rw', isa => 'Str');
+has 'spo_body' => (is => 'rw', isa => 'Str');
+has 'spo_method' =>  (is => 'rw', isa => 'Str', default => '');
+
+has 'spo_header' => (
+    traits => ['Array'],
+    is => 'ro', 
+    isa => 'ArrayRef[Str]',
+    default => sub { [] },
+    handles => {
+        add_spo_header => 'push',
+        map_spo_header => 'map',
+    }
+);
+
+after 'spo' => sub {
+    my ($self, $value) = @_;
+    my @message = @{$value};
+    $self->spo_first_line($message[0]);
+    $self->add_spo_header(@message);
+    $self->spo_body('boo');
+};
+
+after 'spo_first_line' => sub {
+    my ($self, $value) = @_;
+    $value ||= '';
+    $self->spo_method('INVITE') if $value =~ 'INVITE';
+};
+
 
 sub _prepare {
     my $self = shift;
     if ($self->opt->out) {
         open my $fh, '>', $self->opt->out or die $!;
         $self->fh($fh);
+    }
+
+    # If we show the body, we don't need to show 'codecs'.
+    if ($self->opt->body) {
+        $self->opt->codecs(0);
     }
 }
 
@@ -53,12 +86,6 @@ sub _check_hosts {
     return 1;
 }
 
-sub _get_method {
-    my ($self, $message) = @_;
-    return 'INVITE' if $message =~ 'INVITE';
-    return '';
-}
-
 sub _verbose {
     my ($self, @info) = @_;
     for my $item (@info) {
@@ -66,19 +93,28 @@ sub _verbose {
     }
 }
 
+sub _show_header {
+    my $self = shift;
+    $self->map_spo_header( sub { $self->_print(join("\n", $_)) });
+}
+
+sub _show_body {
+    my $self = shift;
+}
+
 sub _show () {
     my ($self, $ip, $spo) = @_;
-    my ($first_line) = split(/\n/, $spo->{data});
-    $self->first_line($first_line);
-    my $out = join(':', 'SIP', $ip->{src_ip}, $spo->{src_port} . ' -> ',
-        $ip->{dest_ip}, $spo->{dest_port}, $first_line . "\n");
-    
+    my $out = join(':', '**', $ip->{src_ip}, $spo->{src_port} . ' -> ',
+        $ip->{dest_ip}, $spo->{dest_port}, $self->spo_first_line() . "\n");
+    $self->_show_header if $self->opt->header;
+    $self->_show_body if $self->opt->body;
     $self->_print($out);
 }
 
-sub _udp_callback {
+sub _default_callback {
     my ($self, $npe, $ether, $ip, $spo) = @_;
-    $self->spo($spo->{data});
+    my @aspo = split(/\n/, $spo->{data});
+    $self->spo(\@aspo);
     
     # validates
     return if !$self->_check_txts;
@@ -89,9 +125,8 @@ sub _udp_callback {
     $self->_show_codecs if $self->opt->codecs;
 
     # introspect and stats.
-    my $method = $self->_get_method ($self->first_line);
     $self->inc_calls() if $self->does('Sipa::Role::Stats') 
-        and $method eq 'INVITE';
+        and $self->spo_method() eq 'INVITE';
 
     # more ...
     $self->_verbose ($npe, $ether, $ip, $spo) 
@@ -109,7 +144,7 @@ sub get {
         bytes_to_capture => 1024,
         timeout_in_ms => 0,
         promiscous => $self->opt->promiscous,
-        udp_callback => sub { $self->_udp_callback(@_) } ,
+        default_callback => sub { $self->_default_callback(@_) } ,
     );
 
     1 while $npe->loop;

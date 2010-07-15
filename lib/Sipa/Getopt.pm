@@ -14,7 +14,7 @@ has 'dev' => (is => 'rw', isa => 'Str', default => 'eth0');
 has 'promiscous' => (is => 'rw', isa => 'Bool', default => 1);
 
 # Bool options
-foreach my $item (qw/verbose codecs stats/) {
+foreach my $item (qw/verbose codecs stats header body/) {
     has $item => (is => 'rw', isa => 'Bool', default => 0);
 }
 
