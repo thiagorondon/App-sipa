@@ -36,7 +36,7 @@ sub _print {
 
 sub _show_codecs {
     my $self = shift;
-    my @data = split(/\n/, $self->packet);
+    my @data = @{$self->packet};
     for my $line (@data) {
         print (' ' x 16 . '->' . $line . "\n") if $line =~ 'a=rtpmap';
     }

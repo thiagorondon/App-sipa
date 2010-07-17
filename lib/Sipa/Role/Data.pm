@@ -26,6 +26,7 @@ has 'packet_header' => (
 
 after 'packet' => sub {
     my ($self, $value) = @_;
+    return if !$value;
     my @message = @{$value};
     $self->packet_first_line($message[0]);
     $self->add_packet_header(@message);
