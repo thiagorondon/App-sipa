@@ -49,10 +49,10 @@ sub _check_txts {
 }
 
 sub _check_hosts {
-    my ($self, $src_host, $dest_host) = @_;
+    my ($self) = @_;
     return 0 if $self->opt->host and 
-        $src_host ne $self->opt->host and
-            $dest_host ne $self->opt->host;
+        $self->packet_src_host ne $self->opt->host and
+            $self->packet_dst_host ne $self->opt->host;
     return 1;
 }
 

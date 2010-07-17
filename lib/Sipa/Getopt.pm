@@ -9,7 +9,8 @@ use namespace::autoclean;
 with 'MooseX::Getopt';
 
 # With default options
-has 'port' => (is => 'rw', isa => 'Int', default => 5060);
+has 'port' => (is => 'rw', isa => 'Int', default => 5060, documentation =>
+    'port');
 has 'dev' => (is => 'rw', isa => 'Str', default => 'eth0');
 has 'promiscous' => (is => 'rw', isa => 'Bool', default => 1);
 
