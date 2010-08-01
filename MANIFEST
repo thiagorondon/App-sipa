@@ -1,0 +1,10 @@
+bin/sipa
+lib/Sipa/Getopt.pm
+lib/Sipa/Role/Data.pm
+lib/Sipa/Role/Pcap.pm
+lib/Sipa/Role/Stats.pm
+lib/Sipa/Runtime.pm
+Makefile.PL
+MANIFEST			This list of files
+README
+t/00_compile.t

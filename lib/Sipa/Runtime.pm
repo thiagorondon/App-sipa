@@ -1,5 +1,6 @@
 
 package Sipa::Runtime;
+our $VERSION = '0.0001';
 
 use Moose;
 with 'MooseX::Traits';

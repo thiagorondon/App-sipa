@@ -74,7 +74,7 @@ use Moose;
 with 'MooseX::Traits';
 
 use FindBin qw($Bin);
-use lib "$Bin/lib";
+use lib "$Bin/../lib";
 
 use Sipa::Getopt;
 use Sipa::Runtime;
