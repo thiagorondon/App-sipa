@@ -23,7 +23,7 @@ sub get {
 
     my $npe = Net::Pcap::Easy->new(
         dev     =>  $self->opt->dev,
-        filter  =>  $self->opt->filter,
+        filter  =>  $self->opt->_filter,
         packet_per_loop => 10,
         bytes_to_capture => 1024,
         timeout_in_ms => 0,
