@@ -14,6 +14,7 @@ WriteMakefile(
         'MooseX::Getopt' => 0.31,
         'MooseX::Traits' => 0.11,
         'namespace::autoclean' => 0.11,
+        'Moose' => 1.09,
     },
     LICENSE => 'perl',
     EXE_FILES => [ 'bin/sipa' ],
