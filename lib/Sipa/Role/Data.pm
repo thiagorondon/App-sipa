@@ -4,7 +4,7 @@ package Sipa::Role::Data;
 use Moose::Role;
 
 has 'packet' => (is => 'rw', isa => 'ArrayRef', default => sub { [] });
-has 'packet_first_line' => (is => 'rw', isa => 'Str');
+has 'packet_first_line' => (is => 'rw', isa => 'Any', default => '');
 has 'packet_body' => (is => 'rw', isa => 'Str');
 has 'packet_method' =>  (is => 'rw', isa => 'Str', default => '');
 
